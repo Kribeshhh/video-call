@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from sqlalchemy.pool import NullPool, SingletonThreadPool
 from src.models.user import db, User
 from src.routes.user import user_bp
 from src.routes.call import call_bp, active_rooms
