@@ -12,7 +12,12 @@ let isVideoOff = false;
 const rtcConfiguration = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        {
+            urls: 'turn:YOUR_TURN_SERVER_URL',
+            username: 'USERNAME',
+            credential: 'CREDENTIAL'
+        }
     ]
 };
 
@@ -467,11 +472,17 @@ function initializePeerConnection() {
     });
     
     // Handle remote stream
-    peerConnection.ontrack = (event) => {
-        remoteStream = event.streams[0];
-        document.getElementById('remote-video').srcObject = remoteStream;
-        document.getElementById('remote-user-badge').textContent = 'Connected';
-    };
+    remoteStream = new MediaStream();
+    document.getElementById('remote-video').srcObject = remoteStream;
+
+peerConnection.ontrack = (event) => {
+    event.streams[0]?.getTracks().forEach(track => {
+        if (!remoteStream.getTracks().find(t => t.kind === track.kind)) {
+            remoteStream.addTrack(track);
+        }
+    });
+    document.getElementById('remote-user-badge').textContent = 'Connected';
+};
     
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
