@@ -30,8 +30,14 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(call_bp, url_prefix='/api')
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")  # Render fix
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    db_path = os.path.join(os.path.dirname(__file__), 'database')
+    os.makedirs(db_path, exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(db_path, 'app.db')}"
 db.init_app(app)
 with app.app_context():
     db.create_all()
