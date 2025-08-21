@@ -440,6 +440,7 @@ async function startCall() {
             video: { facingMode: "user" },
             audio: true
         });
+        console.log(localStream.getVideoTracks());
         
         document.getElementById('local-video').srcObject = localStream;
         
