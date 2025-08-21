@@ -437,7 +437,7 @@ async function startCall() {
     try {
         // Get user media
         localStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: { facingMode: "user" },
             audio: true
         });
         
