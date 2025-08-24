@@ -3,7 +3,7 @@ eventlet.monkey_patch()
 
 import os
 import sys
-# DON'T CHANGE THIS !!!
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
@@ -36,10 +36,10 @@ app.register_blueprint(call_bp, url_prefix='/api')
 # Database configuration
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")  # Render fix
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")  
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'poolclass': NullPool  # Avoid Eventlet threading issues
+        'poolclass': NullPool  
     }
 else:
     db_path = os.path.join(os.path.dirname(__file__), 'database')
@@ -47,7 +47,7 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(db_path, 'app.db')}"
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'connect_args': {'check_same_thread': False},
-        'poolclass': SingletonThreadPool  # SQLite safe for Eventlet
+        'poolclass': SingletonThreadPool  
     }
 
 db.init_app(app)

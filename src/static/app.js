@@ -677,11 +677,21 @@ function initializeSocket() {
     
     socket.on('user_joined', (data) => {
         showAlert(`${data.username} joined the call`, 'info');
-        // If we're already in a call, create an offer for the new user
-        if (peerConnection && currentRoomCode) {
-            setTimeout(() => createOffer(), 1000);
-        }
-    });
+    
+        // FIXED: Only create offer if we have been in the room longer
+            if (peerConnection && currentRoomCode) {
+                // Add a random delay to prevent race condition
+                const delay = Math.random() * 1000 + 1000; // 1-2 seconds
+                setTimeout(() => {
+                    if (peerConnection.signalingState === 'stable') {
+                        console.log('Creating offer after delay...');
+                        createOffer();
+                    } else {
+                        console.log('Not creating offer, state:', peerConnection.signalingState);
+                    }
+                }, delay);
+            }
+        });
     
     socket.on('user_left', (data) => {
         showAlert(`${data.username} left the call`, 'info');
@@ -696,8 +706,29 @@ function initializeSocket() {
     });
     
     socket.on('webrtc_answer', async (data) => {
-        if (peerConnection) {
-            await peerConnection.setRemoteDescription(data.answer);
+        if (data.sender === currentUser?.username) {
+            return; // Ignore our own answer
+        }
+        
+        if (!peerConnection) {
+            console.error('No peer connection');
+            return;
+        }
+
+        // FIXED: Check state and handle accordingly
+        if (peerConnection.signalingState === 'have-local-offer') {
+            try {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                console.log('✅ Answer set successfully');
+            } catch (error) {
+                console.error('❌ Error setting answer:', error);
+            }
+        } else if (peerConnection.signalingState === 'stable') {
+            // We're in stable state - this means we didn't send an offer
+            // The other user might have sent an offer we missed
+            console.log('Received answer but in stable state - ignoring');
+        } else {
+            console.log('Unexpected state for answer:', peerConnection.signalingState);
         }
     });
     
